@@ -1,0 +1,29 @@
+-- SQL schema for TATES
+-- Users table
+CREATE TABLE users (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  email VARCHAR(100) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  fullName VARCHAR(100),
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Recipes table
+CREATE TABLE recipes (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  title VARCHAR(200) NOT NULL,
+  description TEXT,
+  ingredients JSON,
+  steps JSON,
+  imageUrl VARCHAR(500),
+  userId INT NOT NULL,
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Indexes for better performance
+CREATE INDEX idx_recipes_userId ON recipes(userId);
+CREATE INDEX idx_recipes_createdAt ON recipes(createdAt);

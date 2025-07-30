@@ -1,0 +1,10 @@
+# Node
+node_modules/
+.env
+
+# React Native
+.expo/
+*.log
+
+# Database
+*.sqlite
