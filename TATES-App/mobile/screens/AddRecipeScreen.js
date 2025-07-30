@@ -1,32 +1,69 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, Image, StatusBar, KeyboardAvoidingView, Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { Colors, Shadows, Spacing, BorderRadius } from '../constants/Colors';
+import ModernInput from '../components/ModernInput';
+import ModernButton from '../components/ModernButton';
 
-export default function AddRecipeScreen() {
+export default function AddRecipeScreen({ navigation }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [ingredients, setIngredients] = useState('');
   const [steps, setSteps] = useState('');
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!title.trim()) {
+      newErrors.title = 'Tarif başlığı gerekli';
+    }
+    
+    if (!description.trim()) {
+      newErrors.description = 'Tarif açıklaması gerekli';
+    }
+    
+    if (!ingredients.trim()) {
+      newErrors.ingredients = 'Malzemeler gerekli';
+    }
+    
+    if (!steps.trim()) {
+      newErrors.steps = 'Hazırlanış adımları gerekli';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      setImage(result.assets[0].uri);
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert('İzin Gerekli', 'Fotoğraf galerisine erişim izni gereklidir.');
+        return;
+      }
+
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      Alert.alert('Hata', 'Resim seçilirken bir hata oluştu.');
     }
   };
 
   const handleSubmit = async () => {
-    if (!title || !description || !ingredients || !steps) {
-      Alert.alert('Error', 'Please fill in all fields.');
-      return;
-    }
+    if (!validateForm()) return;
+    
     setLoading(true);
     try {
       let formData = new FormData();
@@ -34,6 +71,7 @@ export default function AddRecipeScreen() {
       formData.append('description', description);
       formData.append('ingredients', ingredients);
       formData.append('steps', steps);
+      
       if (image) {
         formData.append('image', {
           uri: image,
@@ -41,123 +79,233 @@ export default function AddRecipeScreen() {
           type: 'image/jpeg',
         });
       }
+
       const response = await fetch('http://localhost:3000/api/recipes', {
         method: 'POST',
         headers: {
           'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${global.token}`,
         },
         body: formData,
       });
+
       if (response.ok) {
-        Alert.alert('Success', 'Recipe added successfully!');
-        setTitle(''); setDescription(''); setIngredients(''); setSteps(''); setImage(null);
+        Alert.alert(
+          'Başarılı', 
+          'Tarif başarıyla eklendi!',
+          [
+            { 
+              text: 'Tamam', 
+              onPress: () => {
+                setTitle('');
+                setDescription('');
+                setIngredients('');
+                setSteps('');
+                setImage(null);
+                navigation.goBack();
+              }
+            }
+          ]
+        );
       } else {
         const data = await response.json();
-        Alert.alert('Error', data.message || 'Failed to add recipe.');
+        Alert.alert('Hata', data.message || 'Tarif eklenirken bir hata oluştu.');
       }
     } catch (error) {
-      Alert.alert('Error', 'Could not connect to server.');
+      Alert.alert('Hata', 'Sunucuya bağlanılamadı. İnternet bağlantınızı kontrol edin.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Add New Recipe</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Title"
-        value={title}
-        onChangeText={setTitle}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Description"
-        value={description}
-        onChangeText={setDescription}
-        multiline
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Ingredients (comma separated)"
-        value={ingredients}
-        onChangeText={setIngredients}
-        multiline
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Steps"
-        value={steps}
-        onChangeText={setSteps}
-        multiline
-      />
-      <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
-        <Text style={styles.imagePickerText}>{image ? 'Change Image' : 'Pick an Image'}</Text>
-      </TouchableOpacity>
-      {image && <Image source={{ uri: image }} style={styles.image} />}
-      <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading}>
-        <Text style={styles.buttonText}>{loading ? 'Submitting...' : 'Add Recipe'}</Text>
-      </TouchableOpacity>
-    </ScrollView>
+    <KeyboardAvoidingView 
+      style={styles.container} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <StatusBar backgroundColor={Colors.primary} barStyle="light-content" />
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backIcon}>←</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Yeni Tarif Ekle</Text>
+        <View style={{ width: 44 }} />
+      </View>
+
+      <ScrollView 
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Image Section */}
+        <View style={styles.imageSection}>
+          <Text style={styles.sectionTitle}>Tarif Fotoğrafı</Text>
+          <TouchableOpacity 
+            style={styles.imageContainer} 
+            onPress={pickImage}
+            activeOpacity={0.8}
+          >
+            {image ? (
+              <Image source={{ uri: image }} style={styles.selectedImage} />
+            ) : (
+              <View style={styles.imagePlaceholder}>
+                <Text style={styles.imageIcon}>📷</Text>
+                <Text style={styles.imageText}>Fotoğraf Seç</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Form Section */}
+        <View style={styles.formSection}>
+          <ModernInput
+            label="Tarif Başlığı"
+            placeholder="Örn: Ev Yapımı Pizza"
+            value={title}
+            onChangeText={setTitle}
+            error={errors.title}
+          />
+
+          <ModernInput
+            label="Tarif Açıklaması"
+            placeholder="Tarifiniz hakkında kısa bir açıklama yazın..."
+            value={description}
+            onChangeText={setDescription}
+            error={errors.description}
+            multiline
+            numberOfLines={3}
+          />
+
+          <ModernInput
+            label="Malzemeler"
+            placeholder="Her malzemeyi yeni satıra yazın..."
+            value={ingredients}
+            onChangeText={setIngredients}
+            error={errors.ingredients}
+            multiline
+            numberOfLines={6}
+          />
+
+          <ModernInput
+            label="Hazırlanışı"
+            placeholder="Her adımı yeni satıra yazın..."
+            value={steps}
+            onChangeText={setSteps}
+            error={errors.steps}
+            multiline
+            numberOfLines={8}
+          />
+        </View>
+
+        {/* Submit Button */}
+        <View style={styles.submitSection}>
+          <ModernButton
+            title="Tarifi Yayınla"
+            onPress={handleSubmit}
+            loading={loading}
+            size="large"
+            style={styles.submitButton}
+          />
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    backgroundColor: '#f5f6fa',
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  header: {
+    backgroundColor: Colors.primary,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingTop: 50,
+    paddingBottom: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+    ...Shadows.medium,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 24,
-    color: '#222f3e',
-  },
-  input: {
-    width: '100%',
-    minHeight: 48,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#d1d8e0',
-    fontSize: 16,
-  },
-  imagePicker: {
-    width: '100%',
-    height: 48,
-    backgroundColor: '#3867d6',
-    borderRadius: 8,
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.round,
+    backgroundColor: Colors.white,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    ...Shadows.small,
   },
-  imagePickerText: {
-    color: '#fff',
-    fontSize: 16,
+  backIcon: {
+    fontSize: 20,
+    color: Colors.primary,
     fontWeight: 'bold',
   },
-  image: {
-    width: 200,
-    height: 150,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  button: {
-    width: '100%',
-    height: 48,
-    backgroundColor: '#20bf6b',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  buttonText: {
-    color: '#fff',
+  headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: Colors.white,
+  },
+  content: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.xxl,
+  },
+  imageSection: {
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.xl,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.textPrimary,
+    marginBottom: Spacing.md,
+  },
+  imageContainer: {
+    width: '100%',
+    height: 200,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+    ...Shadows.medium,
+  },
+  selectedImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  imagePlaceholder: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: Colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: Colors.border,
+    borderStyle: 'dashed',
+  },
+  imageIcon: {
+    fontSize: 48,
+    marginBottom: Spacing.sm,
+  },
+  imageText: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+  },
+  formSection: {
+    marginBottom: Spacing.xl,
+  },
+  submitSection: {
+    marginTop: Spacing.lg,
+  },
+  submitButton: {
+    width: '100%',
   },
 });

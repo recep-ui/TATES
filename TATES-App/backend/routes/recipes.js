@@ -25,4 +25,12 @@ router.post('/', authMiddleware, upload.single('image'), recipeController.addRec
 router.put('/:id', authMiddleware, upload.single('image'), recipeController.updateRecipe);
 router.delete('/:id', authMiddleware, recipeController.deleteRecipe);
 
+// Like and favorite routes
+router.post('/:id/like', authMiddleware, recipeController.likeRecipe);
+router.post('/:id/favorite', authMiddleware, recipeController.favoriteRecipe);
+
+// Comments routes
+router.get('/:id/comments', recipeController.getComments);
+router.post('/:id/comments', authMiddleware, recipeController.addComment);
+
 module.exports = router;
