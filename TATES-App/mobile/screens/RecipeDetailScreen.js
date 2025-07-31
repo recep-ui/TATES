@@ -15,7 +15,7 @@ export default function RecipeDetailScreen({ route, navigation }) {
 
   const fetchComments = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/recipes/${recipe.id}/comments`);
+      const response = await fetch(`http://192.168.1.102:3000/api/recipes/${recipe.id}/comments`);
       if (response.ok) {
         const data = await response.json();
         setComments(data.comments || []);
@@ -27,7 +27,7 @@ export default function RecipeDetailScreen({ route, navigation }) {
 
   const handleLike = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/recipes/${recipe.id}/like`, {
+      const response = await fetch(`http://192.168.1.102:3000/api/recipes/${recipe.id}/like`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -42,7 +42,7 @@ export default function RecipeDetailScreen({ route, navigation }) {
 
   const handleFavorite = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/recipes/${recipe.id}/favorite`, {
+      const response = await fetch(`http://192.168.1.102:3000/api/recipes/${recipe.id}/favorite`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -62,7 +62,7 @@ export default function RecipeDetailScreen({ route, navigation }) {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/api/recipes/${recipe.id}/comments`, {
+      const response = await fetch(`http://192.168.1.102:3000/api/recipes/${recipe.id}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ comment: newComment })
@@ -88,7 +88,7 @@ export default function RecipeDetailScreen({ route, navigation }) {
       </View>
 
       {recipe.imageUrl && (
-        <Image source={{ uri: `http://localhost:3000${recipe.imageUrl}` }} style={styles.recipeImage} />
+                    <Image source={{ uri: `http://192.168.1.102:3000${recipe.imageUrl}` }} style={styles.recipeImage} />
       )}
 
       <View style={styles.content}>

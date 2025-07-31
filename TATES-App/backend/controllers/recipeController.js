@@ -3,15 +3,15 @@ const db = require('../config/db');
 // Recipe controller: add, list, etc.
 exports.addRecipe = async (req, res) => {
   try {
-    const { title, description, ingredients, steps } = req.body;
+    const { title, description, ingredients, steps, categoryId } = req.body;
     const userId = req.user.id; // JWT'den gelen kullanıcı ID'si
     
     // Image URL'ini al
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
     
     const [result] = await db.promise().query(
-      'INSERT INTO recipes (title, description, ingredients, steps, imageUrl, userId) VALUES (?, ?, ?, ?, ?, ?)',
-      [title, description, JSON.stringify(ingredients), JSON.stringify(steps), imageUrl, userId]
+      'INSERT INTO recipes (title, description, ingredients, steps, imageUrl, userId, categoryId) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [title, description, JSON.stringify(ingredients), JSON.stringify(steps), imageUrl, userId, categoryId]
     );
     
     res.status(201).json({ 
@@ -27,9 +27,19 @@ exports.addRecipe = async (req, res) => {
 
 exports.getRecipes = async (req, res) => {
   try {
-    const [recipes] = await db.promise().query(
-      'SELECT r.*, u.username, u.fullName FROM recipes r JOIN users u ON r.userId = u.id ORDER BY r.createdAt DESC'
-    );
+    const { category } = req.query;
+    
+    let query = 'SELECT * FROM recipes';
+    let params = [];
+    
+    if (category) {
+      query += ' WHERE categoryId = ?';
+      params.push(category);
+    }
+    
+    query += ' ORDER BY createdAt DESC';
+    
+    const [recipes] = await db.promise().query(query, params);
     
     res.json({ recipes });
   } catch (error) {
@@ -43,7 +53,7 @@ exports.getRecipeById = async (req, res) => {
     const { id } = req.params;
     
     const [recipes] = await db.promise().query(
-      'SELECT r.*, u.username, u.fullName FROM recipes r JOIN users u ON r.userId = u.id WHERE r.id = ?',
+      'SELECT * FROM recipes WHERE id = ?',
       [id]
     );
     
@@ -104,13 +114,12 @@ exports.deleteRecipe = async (req, res) => {
   }
 };
 
-// Like functionality
 exports.likeRecipe = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
     
-    // Check if already liked
+    // Check if user already liked the recipe
     const [existing] = await db.promise().query(
       'SELECT * FROM recipe_likes WHERE recipeId = ? AND userId = ?',
       [id, userId]
@@ -151,13 +160,12 @@ exports.likeRecipe = async (req, res) => {
   }
 };
 
-// Favorite functionality
 exports.favoriteRecipe = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
     
-    // Check if already favorited
+    // Check if user already favorited the recipe
     const [existing] = await db.promise().query(
       'SELECT * FROM recipe_favorites WHERE recipeId = ? AND userId = ?',
       [id, userId]
@@ -186,7 +194,6 @@ exports.favoriteRecipe = async (req, res) => {
   }
 };
 
-// Comments functionality
 exports.getComments = async (req, res) => {
   try {
     const { id } = req.params;
@@ -220,6 +227,49 @@ exports.addComment = async (req, res) => {
     });
   } catch (error) {
     console.error('Error adding comment:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.getTrendingRecipes = async (req, res) => {
+  try {
+    const { time } = req.query; // week, month, all
+    
+    let dateFilter = '';
+    let params = [];
+    
+    if (time === 'week') {
+      dateFilter = 'WHERE r.createdAt >= DATE_SUB(NOW(), INTERVAL 7 DAY)';
+    } else if (time === 'month') {
+      dateFilter = 'WHERE r.createdAt >= DATE_SUB(NOW(), INTERVAL 30 DAY)';
+    }
+    
+    const query = `
+      SELECT r.*, c.name as categoryName, c.color as categoryColor,
+             COUNT(rl.id) as likes,
+             COUNT(DISTINCT rc.id) as comments
+      FROM recipes r
+      LEFT JOIN categories c ON r.categoryId = c.id
+      LEFT JOIN recipe_likes rl ON r.id = rl.recipeId
+      LEFT JOIN recipe_comments rc ON r.id = rc.recipeId
+      ${dateFilter}
+      GROUP BY r.id
+      ORDER BY likes DESC, comments DESC
+      LIMIT 10
+    `;
+    
+    const [recipes] = await db.promise().query(query, params);
+    
+    // Trend yönünü belirle (basit hesaplama)
+    const trendingRecipes = recipes.map((recipe, index) => ({
+      ...recipe,
+      views: Math.floor(Math.random() * 1000) + 500, // Demo için
+      trend: index < 3 ? 'up' : index < 6 ? 'stable' : 'down'
+    }));
+    
+    res.json({ recipes: trendingRecipes });
+  } catch (error) {
+    console.error('Error getting trending recipes:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

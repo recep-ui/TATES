@@ -26,8 +26,10 @@ app.use('/uploads', express.static('uploads'));
 // Routes
 const authRoutes = require('./routes/auth');
 const recipeRoutes = require('./routes/recipes');
+const categoryRoutes = require('./routes/categories');
 app.use('/api', authRoutes);
 app.use('/api/recipes', recipeRoutes);
+app.use('/api/categories', categoryRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

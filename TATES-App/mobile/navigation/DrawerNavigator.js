@@ -3,7 +3,6 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import HomeScreen from '../screens/HomeScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import AddRecipeScreen from '../screens/AddRecipeScreen';
-import RecipeDetailScreen from '../screens/RecipeDetailScreen';
 import CategoriesScreen from '../screens/CategoriesScreen';
 import FavoritesScreen from '../screens/FavoritesScreen';
 import TrendsScreen from '../screens/TrendsScreen';
@@ -11,9 +10,6 @@ import RecentlyViewedScreen from '../screens/RecentlyViewedScreen';
 import FeedbackScreen from '../screens/FeedbackScreen';
 import AboutScreen from '../screens/AboutScreen';
 import LogoutScreen from '../screens/LogoutScreen';
-import LoginScreen from '../screens/LoginScreen';
-import RegisterScreen from '../screens/RegisterScreen';
-import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import { Text } from 'react-native';
 
 const Drawer = createDrawerNavigator();

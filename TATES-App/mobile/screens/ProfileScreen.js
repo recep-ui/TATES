@@ -16,7 +16,7 @@ export default function ProfileScreen({ navigation }) {
 
   const fetchUserProfile = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/profile', {
+      const response = await fetch('http://192.168.1.102:3000/api/profile', {
         headers: {
           'Authorization': `Bearer ${global.token}` // Global token kullanımı
         }
@@ -33,7 +33,7 @@ export default function ProfileScreen({ navigation }) {
   const fetchUserData = async () => {
     try {
       // Kullanıcının tariflerini getir
-      const recipesResponse = await fetch('http://localhost:3000/api/profile/recipes', {
+      const recipesResponse = await fetch('http://192.168.1.102:3000/api/profile/recipes', {
         headers: {
           'Authorization': `Bearer ${global.token}`
         }
@@ -44,7 +44,7 @@ export default function ProfileScreen({ navigation }) {
       }
 
       // Beğenileri getir
-      const likesResponse = await fetch('http://localhost:3000/api/profile/likes', {
+      const likesResponse = await fetch('http://192.168.1.102:3000/api/profile/likes', {
         headers: {
           'Authorization': `Bearer ${global.token}`
         }
@@ -55,7 +55,7 @@ export default function ProfileScreen({ navigation }) {
       }
 
       // Yorumları getir
-      const commentsResponse = await fetch('http://localhost:3000/api/profile/comments', {
+      const commentsResponse = await fetch('http://192.168.1.102:3000/api/profile/comments', {
         headers: {
           'Authorization': `Bearer ${global.token}`
         }
@@ -66,7 +66,7 @@ export default function ProfileScreen({ navigation }) {
       }
 
       // Kaydedilenleri getir
-      const savedResponse = await fetch('http://localhost:3000/api/profile/saved', {
+      const savedResponse = await fetch('http://192.168.1.102:3000/api/profile/saved', {
         headers: {
           'Authorization': `Bearer ${global.token}`
         }
@@ -146,7 +146,7 @@ export default function ProfileScreen({ navigation }) {
             onPress={() => navigation.navigate('RecipeDetailScreen', { recipe })}
           >
             {recipe.imageUrl && (
-              <Image source={{ uri: `http://localhost:3000${recipe.imageUrl}` }} style={styles.recipeImage} />
+              <Image source={{ uri: `http://192.168.1.102:3000${recipe.imageUrl}` }} style={styles.recipeImage} />
             )}
             <View style={styles.recipeInfo}>
               <Text style={styles.recipeTitle}>{recipe.title}</Text>
@@ -172,7 +172,7 @@ export default function ProfileScreen({ navigation }) {
             onPress={() => navigation.navigate('RecipeDetailScreen', { recipe: like.recipe })}
           >
             {like.recipe.imageUrl && (
-              <Image source={{ uri: `http://localhost:3000${like.recipe.imageUrl}` }} style={styles.recipeImage} />
+              <Image source={{ uri: `http://192.168.1.102:3000${like.recipe.imageUrl}` }} style={styles.recipeImage} />
             )}
             <View style={styles.recipeInfo}>
               <Text style={styles.recipeTitle}>{like.recipe.title}</Text>
@@ -214,7 +214,7 @@ export default function ProfileScreen({ navigation }) {
             onPress={() => navigation.navigate('RecipeDetailScreen', { recipe: save.recipe })}
           >
             {save.recipe.imageUrl && (
-              <Image source={{ uri: `http://localhost:3000${save.recipe.imageUrl}` }} style={styles.recipeImage} />
+              <Image source={{ uri: `http://192.168.1.102:3000${save.recipe.imageUrl}` }} style={styles.recipeImage} />
             )}
             <View style={styles.recipeInfo}>
               <Text style={styles.recipeTitle}>{save.recipe.title}</Text>

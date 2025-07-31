@@ -13,5 +13,6 @@ router.get('/profile/recipes', authMiddleware, authController.getUserRecipes);
 router.get('/profile/likes', authMiddleware, authController.getUserLikes);
 router.get('/profile/comments', authMiddleware, authController.getUserComments);
 router.get('/profile/saved', authMiddleware, authController.getUserSaved);
+router.get('/profile/favorites', authMiddleware, authController.getUserFavorites);
 
 module.exports = router;

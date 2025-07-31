@@ -13,7 +13,7 @@ export default function ForgotPasswordScreen({ navigation }) {
     }
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/forgot-password', {
+      const response = await fetch('http://192.168.1.102:3000/api/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, username })

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView, Image, StatusBar, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Alert, ScrollView, Image, StatusBar, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Colors, Shadows, Spacing, BorderRadius } from '../constants/Colors';
 import ModernInput from '../components/ModernInput';
@@ -11,8 +11,26 @@ export default function AddRecipeScreen({ navigation }) {
   const [ingredients, setIngredients] = useState('');
   const [steps, setSteps] = useState('');
   const [image, setImage] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('http://192.168.1.102:3000/api/categories');
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(data.categories || []);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
 
   const validateForm = () => {
     const newErrors = {};
@@ -31,6 +49,10 @@ export default function AddRecipeScreen({ navigation }) {
     
     if (!steps.trim()) {
       newErrors.steps = 'Hazırlanış adımları gerekli';
+    }
+    
+    if (!selectedCategory) {
+      newErrors.category = 'Kategori seçimi gerekli';
     }
     
     setErrors(newErrors);
@@ -71,6 +93,7 @@ export default function AddRecipeScreen({ navigation }) {
       formData.append('description', description);
       formData.append('ingredients', ingredients);
       formData.append('steps', steps);
+      formData.append('categoryId', selectedCategory.id);
       
       if (image) {
         formData.append('image', {
@@ -80,7 +103,7 @@ export default function AddRecipeScreen({ navigation }) {
         });
       }
 
-      const response = await fetch('http://localhost:3000/api/recipes', {
+      const response = await fetch('http://192.168.1.102:3000/api/recipes', {
         method: 'POST',
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -180,6 +203,34 @@ export default function AddRecipeScreen({ navigation }) {
             multiline
             numberOfLines={3}
           />
+
+          {/* Category Selection */}
+          <View style={styles.categorySection}>
+            <Text style={styles.categoryLabel}>Kategori</Text>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoryScroll}
+            >
+              {categories.map((category) => (
+                <TouchableOpacity
+                  key={category.id}
+                  style={[
+                    styles.categoryOption,
+                    { backgroundColor: category.color },
+                    selectedCategory?.id === category.id && styles.selectedCategoryOption
+                  ]}
+                  onPress={() => setSelectedCategory(category)}
+                >
+                  <Text style={styles.categoryIcon}>{category.icon}</Text>
+                  <Text style={styles.categoryName}>{category.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            {errors.category && (
+              <Text style={styles.errorText}>{errors.category}</Text>
+            )}
+          </View>
 
           <ModernInput
             label="Malzemeler"
@@ -307,5 +358,45 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     width: '100%',
+  },
+  categorySection: {
+    marginBottom: Spacing.lg,
+  },
+  categoryLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+    marginBottom: Spacing.sm,
+  },
+  categoryScroll: {
+    paddingRight: Spacing.lg,
+  },
+  categoryOption: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.round,
+    marginRight: Spacing.sm,
+    alignItems: 'center',
+    minWidth: 80,
+    ...Shadows.small,
+  },
+  selectedCategoryOption: {
+    borderWidth: 2,
+    borderColor: Colors.white,
+  },
+  categoryIcon: {
+    fontSize: 20,
+    marginBottom: Spacing.xs,
+  },
+  categoryName: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: Colors.white,
+    textAlign: 'center',
+  },
+  errorText: {
+    fontSize: 12,
+    color: '#e74c3c',
+    marginTop: Spacing.xs,
   },
 });

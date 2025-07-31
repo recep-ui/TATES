@@ -16,7 +16,7 @@ export default function HomeScreen({ navigation }) {
 
   const fetchRecipes = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/recipes');
+      const response = await fetch('http://192.168.1.102:3000/api/recipes');
       if (response.ok) {
         const data = await response.json();
         setRecipes(data.recipes || []);
@@ -46,7 +46,7 @@ export default function HomeScreen({ navigation }) {
 
   const handleLike = async (recipeId) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/recipes/${recipeId}/like`, {
+      const response = await fetch(`http://192.168.1.102:3000/api/recipes/${recipeId}/like`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -60,7 +60,7 @@ export default function HomeScreen({ navigation }) {
 
   const handleFavorite = async (recipeId) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/recipes/${recipeId}/favorite`, {
+      const response = await fetch(`http://192.168.1.102:3000/api/recipes/${recipeId}/favorite`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -89,16 +89,16 @@ export default function HomeScreen({ navigation }) {
       
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>TATES</Text>
-          <Text style={styles.headerSubtitle}>Lezzetli tarifler keşfet</Text>
-        </View>
         <TouchableOpacity 
           style={styles.menuButton} 
           onPress={() => navigation.openDrawer()}
         >
           <Text style={styles.menuIcon}>☰</Text>
         </TouchableOpacity>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>TATES</Text>
+          <Text style={styles.headerSubtitle}>Lezzetli tarifler keşfet</Text>
+        </View>
       </View>
 
       {/* Search Bar */}
@@ -195,12 +195,13 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.lg,
     paddingHorizontal: Spacing.lg,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     alignItems: 'flex-end',
     ...Shadows.medium,
   },
   headerContent: {
     flex: 1,
+    marginLeft: Spacing.md,
   },
   headerTitle: {
     fontSize: 28,

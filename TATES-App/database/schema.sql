@@ -10,6 +10,17 @@ CREATE TABLE users (
   updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+-- Categories table
+CREATE TABLE categories (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(100) NOT NULL,
+  icon VARCHAR(10),
+  color VARCHAR(7),
+  description TEXT,
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
 -- Recipes table
 CREATE TABLE recipes (
   id INT PRIMARY KEY AUTO_INCREMENT,
@@ -19,10 +30,12 @@ CREATE TABLE recipes (
   steps JSON,
   imageUrl VARCHAR(500),
   userId INT NOT NULL,
+  categoryId INT,
   likes INT DEFAULT 0,
   createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (categoryId) REFERENCES categories(id) ON DELETE SET NULL
 );
 
 -- Recipe likes table
@@ -62,6 +75,7 @@ CREATE TABLE recipe_comments (
 CREATE INDEX idx_recipes_userId ON recipes(userId);
 CREATE INDEX idx_recipes_createdAt ON recipes(createdAt);
 CREATE INDEX idx_recipes_likes ON recipes(likes);
+CREATE INDEX idx_recipes_categoryId ON recipes(categoryId);
 CREATE INDEX idx_recipe_likes_recipeId ON recipe_likes(recipeId);
 CREATE INDEX idx_recipe_likes_userId ON recipe_likes(userId);
 CREATE INDEX idx_recipe_favorites_recipeId ON recipe_favorites(recipeId);

@@ -33,4 +33,7 @@ router.post('/:id/favorite', authMiddleware, recipeController.favoriteRecipe);
 router.get('/:id/comments', recipeController.getComments);
 router.post('/:id/comments', authMiddleware, recipeController.addComment);
 
+// Trending routes
+router.get('/trending', recipeController.getTrendingRecipes);
+
 module.exports = router;

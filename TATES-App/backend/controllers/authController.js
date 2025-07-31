@@ -182,3 +182,42 @@ exports.getUserSaved = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+exports.getUserFavorites = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    const [favorites] = await db.promise().query(
+      `SELECT rf.*, r.*, u.username, c.name as categoryName, c.color as categoryColor
+       FROM recipe_favorites rf 
+       JOIN recipes r ON rf.recipeId = r.id 
+       JOIN users u ON r.userId = u.id 
+       LEFT JOIN categories c ON r.categoryId = c.id
+       WHERE rf.userId = ? 
+       ORDER BY rf.createdAt DESC`,
+      [userId]
+    );
+    
+    // Veriyi düzenle
+    const formattedFavorites = favorites.map(fav => ({
+      id: fav.id,
+      recipe: {
+        id: fav.recipeId,
+        title: fav.title,
+        description: fav.description,
+        imageUrl: fav.imageUrl,
+        likes: fav.likes,
+        category: {
+          name: fav.categoryName || 'Genel',
+          color: fav.categoryColor || '#3867d6'
+        }
+      },
+      createdAt: fav.createdAt
+    }));
+    
+    res.json({ favorites: formattedFavorites });
+  } catch (error) {
+    console.error('Error getting user favorites:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
